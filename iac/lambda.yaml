@@ -1,0 +1,134 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda function example with EFS
+Transform: AWS::Serverless-2016-10-31
+Globals:
+  Function:
+    MemorySize: !Ref pFnMemory
+    Runtime: java11
+    Timeout: !Ref pFnTimeout
+Parameters:
+  pFnMemory:
+    Type: Number
+  pFnTimeout:
+    Type: Number
+  pS3Bucket:
+    Type: String
+  pS3Key:
+    Type: String
+  pEnvVariable1:
+    Type: String
+  pEnvVariable2:
+    Type: String
+  pSecurityGroup:
+    Type: String
+  pSubnetIds:
+    Type: List<String>
+  pFileSystemArn:
+    Type: String
+  pAccessPointArn:
+    Type: String
+Resources:
+  # Lambda
+  FnRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: '/service-role/'
+      Policies:
+        - PolicyName: cloudwatch-insights
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                Resource: '*'
+        - PolicyName: cloudwatch-logs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:DescribeLogStreams
+                Resource: 'arn:aws:logs:*:*:log-group:*:*'
+        - PolicyName: efs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticfilesystem:ClientMount
+                  - elasticfilesystem:ClientRootAccess
+                  - elasticfilesystem:ClientWrite
+                  - elasticfilesystem:DescribeMountTargets
+                Resource: !Ref pFileSystemArn
+        - PolicyName: ec2-v2n
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:CreateNetworkInterface
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DeleteNetworkInterface
+                Resource: '*'
+  # CloudFormation resource definition
+  # Fn:
+  #   Type: AWS::Lambda::Function
+  #   Properties:
+  #     Architectures: x86_64
+  #     Code:
+  #       S3Bucket: !Ref pS3Bucket
+  #       S3Key: !Ref pS3Bucket
+  #     Environment:
+  #       Variables:
+  #         ENVVAR1: !Ref pEnvVariable1
+  #         ENVVAR2: !Ref pEnvVariable2
+  #     Handler: helloworld.App::handleRequest
+  #     MemorySize: !Ref pFnMemory
+  #     PackageType: Zip
+  #     Role: !GetAtt FnRole.Arn
+  #     Runtime: java11
+  #     Timeout: !Ref pFnTimeout
+  #     VpcConfig:
+  #       SecurityGroupIds:
+  #         - !Ref pSecurityGroup
+  #       SubnetIds: !Ref pSubnetIds
+  #     FileSystemConfigs:
+  #       - Arn: !Ref pAccessPointArn
+  #         LocalMountPath: /mnt/efs
+  Fn:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../target/App-1.0.jar
+      Environment:
+        Variables:
+          ENVVAR1: !Ref pEnvVariable1
+          ENVVAR2: !Ref pEnvVariable2
+      Handler: helloworld.App::handleRequest
+      Role: !GetAtt FnRole.Arn
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref pSecurityGroup
+        SubnetIds: !Ref pSubnetIds
+      FileSystemConfigs:
+        - Arn: !Ref pAccessPointArn
+          LocalMountPath: /mnt/efs
+  FnLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${Fn}'
+      RetentionInDays: 7
+Outputs:
+  outFn:
+    Value: !Ref Fn

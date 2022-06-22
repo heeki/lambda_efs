@@ -1,0 +1,10 @@
+[
+    {
+        "ParameterKey": "pVpcId",
+        "ParameterValue": "your-vpc-id"
+    },
+    {
+        "ParameterKey": "pSubnetIds",
+        "ParameterValue": "your-comma-separated-list-of-subnet-ids"
+    }
+]

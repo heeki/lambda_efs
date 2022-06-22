@@ -1,0 +1,28 @@
+PROFILE=your-aws-cli-profile
+S3BUCKET=your-aws-sam-deploy-bucket
+
+P_VPCID=your-vpc-id
+
+EFS_STACK=your-efs-stack
+EFS_TEMPLATE=iac/efs.yaml
+EFS_PARAMS=etc/params_efs.json
+
+O_SECURITY_GROUP_LAMBDA=output-from-your-efs-stack
+O_EFS_FILESYSTEM_ARN=output-from-your-efs-stack
+O_EFS_ACCESS_POINT_ARN=output-from-your-efs-stack
+
+P_FN_MEMORY=1024
+P_FN_TIMEOUT=60
+P_S3_BUCKET=${S3BUCKET}
+$(eval P_S3_KEY=$(shell shasum -a 256 target/App-1.0.jar | awk '{print $$1}'))
+P_ENV_VARIABLE1=tbd
+P_ENV_VARIABLE2=tbd
+P_SECURITY_GROUP=${O_SECURITY_GROUP_LAMBDA}
+P_SUBNET_IDS=your-comma-separated-list-of-subnet-ids
+
+LAMBDA_STACK=your-lambda-stack
+LAMBDA_TEMPLATE=iac/lambda.yaml
+LAMBDA_OUTPUT=iac/lambda_output.yaml
+LAMBDA_PARAMS="ParameterKey=pFnMemory,ParameterValue=${P_FN_MEMORY} ParameterKey=pFnTimeout,ParameterValue=${P_FN_TIMEOUT} ParameterKey=pS3Bucket,ParameterValue=${P_S3_BUCKET} ParameterKey=pS3Key,ParameterValue=${P_S3_KEY} ParameterKey=pEnvVariable1,ParameterValue=${P_ENV_VARIABLE1}  ParameterKey=pSecurityGroup,ParameterValue=${P_SECURITY_GROUP} ParameterKey=pSubnetIds,ParameterValue=${P_SUBNET_IDS} ParameterKey=pFileSystemArn,ParameterValue=${O_EFS_FILESYSTEM_ARN} ParameterKey=pAccessPointArn,ParameterValue=${O_EFS_ACCESS_POINT_ARN}"
+
+O_FN=output-from-your-lambda-stack

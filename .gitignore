@@ -1,0 +1,9 @@
+# directories
+target
+tmp
+
+# files
+etc/*.sh
+etc/params_efs.json
+iac/*_output.yaml
+dependency-reduced-pom.xml
